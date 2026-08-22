@@ -9,7 +9,7 @@ generated procedurally in code.
 **Double-click `index.html`** — that's it. (Or serve the folder with any static
 server: `python -m http.server`. A zero-dependency `node server.js` also works.)
 
-### Deploy
+### Live
 
 live: https:\\inaka-life-production.up.railway.app
 
