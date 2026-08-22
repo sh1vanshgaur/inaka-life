@@ -11,10 +11,7 @@ server: `python -m http.server`. A zero-dependency `node server.js` also works.)
 
 ### Deploy
 
-- **Vercel**: push this folder to GitHub → [vercel.com/new](https://vercel.com/new) → import → Deploy
-  (Framework Preset: *Other*, no build settings needed). Or CLI: `npx vercel`.
-- **Railway**: push to GitHub → [railway.app](https://railway.app) → New Project → *Deploy from GitHub repo*.
-  It auto-detects `package.json` and runs `npm start` (the included `server.js` respects Railway's `$PORT`).
+--inaka-life-production.up.railway.app
 
 Desktop + keyboard. Chrome/Edge/Firefox. Progress autosaves to `localStorage`
 (sleeps, every ~3 minutes, and on tab close).
