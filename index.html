@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inaka Life 🌾 — Japanese Countryside Simulator</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="cv"></canvas>
+
+  <div id="ui">
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-row">
+        <div class="chip" id="hud-date">Spring 1</div>
+        <div class="chip" id="hud-clock"><img id="clock-ic" alt=""><span id="clock-tx">06:00</span></div>
+        <div class="chip" id="hud-weather"><span></span></div>
+      </div>
+      <div class="hud-row">
+        <div class="chip coin-chip" id="hud-coins"><img id="coin-ic" alt=""><span id="coin-amt">0</span></div>
+        <div class="chip" id="hud-energy" title="Energy — eat snacks, nap, or visit the onsen">
+          <canvas id="energy-icon" width="12" height="12"></canvas>
+          <div class="bar"><div id="hud-energy-fill"></div></div>
+        </div>
+        <div class="chip" id="hud-can" title="Watering can charges">💧<span id="can-amt">0</span></div>
+      </div>
+      <div id="hud-tut" class="hidden"></div>
+      <div id="hud-quest" class="hidden"></div>
+      <div id="hud-mail" class="hidden" title="New mail! Check the red box by your door ✉">✉<span>!</span></div>
+    </div>
+
+    <!-- HUD buttons -->
+    <div id="hud-btns">
+      <div id="hud-bookbtn" title="Journal (J)">📖</div>
+      <div id="hud-helpbtn" title="How to play (H)">?</div>
+      <div id="hud-mute" title="Music toggle (M)">♪</div>
+    </div>
+
+    <!-- Minimap -->
+    <div id="minimap-wrap">
+      <canvas id="minimap" width="240" height="180"></canvas>
+      <div id="mm-label">TAB · map</div>
+    </div>
+
+    <!-- Location banner -->
+    <div id="loc-banner"><div id="lb-en"></div><div id="lb-jp"></div></div>
+
+    <!-- Save flash -->
+    <div id="save-chip" class="hidden">☁ saved</div>
+
+    <!-- Key legend -->
+    <div id="keys-foot">
+      <span><kbd>WASD</kbd> move</span><span><kbd>E</kbd> talk/use</span><span><kbd>SPACE</kbd> tool</span><span><kbd>I</kbd> pocket</span><span><kbd>J</kbd> journal</span><span><kbd>TAB</kbd> map</span><span><kbd>H</kbd> help</span>
+    </div>
+
+    <!-- Hotbar -->
+    <div id="hotbar" class="hidden"></div>
+
+    <!-- Contextual hint -->
+    <div id="hint" class="hidden"></div>
+
+    <!-- Toasts -->
+    <div id="toasts"></div>
+
+    <!-- Item popup -->
+    <div id="popup" class="hidden"></div>
+
+    <!-- Dialog -->
+    <div id="dialog" class="hidden">
+      <canvas id="dlg-portrait" width="24" height="24"></canvas>
+      <div id="dlg-body">
+        <div id="dlg-nameplate"><span id="dlg-name"></span><span id="dlg-hearts"></span></div>
+        <div id="dlg-text"></div>
+        <div id="dlg-choices"></div>
+        <div id="dlg-more">▼</div>
+      </div>
+    </div>
+
+    <!-- Generic panel (shop / inventory / help / letter / journal) -->
+    <div id="panel" class="hidden">
+      <div id="panel-head"><span id="panel-title"></span><button id="panel-close">×</button></div>
+      <div id="panel-content"></div>
+    </div>
+
+    <!-- Title screen -->
+    <div id="title">
+      <div id="petals"></div>
+      <div id="title-inner">
+        <div id="title-mascots">
+          <img id="mascot-l" alt="">
+          <div>
+            <div id="title-jp">田舎暮らし</div>
+            <div id="title-en">INAKA LIFE</div>
+          </div>
+          <img id="mascot-r" alt="">
+        </div>
+        <div id="title-sub">a tiny japanese countryside sim · cozy patch</div>
+        <div id="title-buttons">
+          <button id="btn-continue" class="hidden">♥ Continue</button>
+          <button id="btn-new">🌱 New Game</button>
+          <button id="btn-help">📖 How to Play</button>
+        </div>
+        <div id="title-keys">
+          <span><kbd>WASD</kbd> walk</span>
+          <span><kbd>E</kbd> interact</span>
+          <span><kbd>SPACE</kbd> use tool</span>
+          <span><kbd>H</kbd> help</span>
+        </div>
+        <div id="title-footer">made with 💛 &nbsp;·&nbsp; press <b>M</b> to mute</div>
+      </div>
+    </div>
+
+    <div id="fade"></div>
+    <div id="errbox" class="hidden"></div>
+  </div>
+</div>
+
+<script src="js/sprites.js"></script>
+<script src="js/sprites2.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/world.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

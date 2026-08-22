@@ -1,0 +1,12 @@
+{
+  "name": "inaka-life",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A cozy pixel-art Japanese countryside life sim that runs entirely in your browser.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

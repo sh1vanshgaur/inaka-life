@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inaka Life 🌾 — Japanese Countryside Simulator</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="cv"></canvas>
+
+  <div id="ui">
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-row">
+        <div class="chip" id="hud-date">Spring 1</div>
+        <div class="chip" id="hud-clock"><img id="clock-ic" alt=""><span id="clock-tx">06:00</span></div>
+        <div class="chip" id="hud-weather"><span></span></div>
+      </div>
+      <div class="hud-row">
+        <div class="chip coin-chip" id="hud-coins"><img id="coin-ic" alt=""><span id="coin-amt">0</span></div>
+        <div class="chip" id="hud-energy" title="Energy — eat snacks, nap, or visit the onsen">
+          <canvas id="energy-icon" width="12" height="12"></canvas>
+          <div class="bar"><div id="hud-energy-fill"></div></div>
+        </div>
+        <div class="chip" id="hud-can" title="Watering can charges">💧<span id="can-amt">0</span></div>
+      </div>
+      <div id="hud-tut" class="hidden"></div>
+      <div id="hud-quest" class="hidden"></div>
+      <div id="hud-mail" class="hidden" title="New mail! Check the red box by your door ✉">✉<span>!</span></div>
+    </div>
+
+    <!-- HUD buttons -->
+    <div id="hud-btns">
+      <div id="hud-bookbtn" title="Journal (J)">📖</div>
+      <div id="hud-helpbtn" title="How to play (H)">?</div>
+      <div id="hud-mute" title="Music toggle (M)">♪</div>
+    </div>
+
+    <!-- Minimap -->
+    <div id="minimap-wrap">
+      <canvas id="minimap" width="240" height="180"></canvas>
+      <div id="mm-label">TAB · map</div>
+    </div>
+
+    <!-- Location banner -->
+    <div id="loc-banner"><div id="lb-en"></div><div id="lb-jp"></div></div>
+
+    <!-- Save flash -->
+    <div id="save-chip" class="hidden">☁ saved</div>
+
+    <!-- Key legend -->
+    <div id="keys-foot">
+      <span><kbd>WASD</kbd> move</span><span><kbd>E</kbd> talk/use</span><span><kbd>SPACE</kbd> tool</span><span><kbd>I</kbd> pocket</span><span><kbd>J</kbd> journal</span><span><kbd>TAB</kbd> map</span><span><kbd>H</kbd> help</span>
+    </div>
+
+    <!-- Hotbar -->
+    <div id="hotbar" class="hidden"></div>
+
+    <!-- Contextual hint -->
+    <div id="hint" class="hidden"></div>
+
+    <!-- Toasts -->
+    <div id="toasts"></div>
+
+    <!-- Item popup -->
+    <div id="popup" class="hidden"></div>
+
+    <!-- Dialog -->
+    <div id="dialog" class="hidden">
+      <canvas id="dlg-portrait" width="24" height="24"></canvas>
+      <div id="dlg-body">
+        <div id="dlg-nameplate"><span id="dlg-name"></span><span id="dlg-hearts"></span></div>
+        <div id="dlg-text"></div>
+        <div id="dlg-choices"></div>
+        <div id="dlg-more">▼</div>
+      </div>
+    </div>
+
+    <!-- Generic panel (shop / inventory / help / letter / journal) -->
+    <div id="panel" class="hidden">
+      <div id="panel-head"><span id="panel-title"></span><button id="panel-close">×</button></div>
+      <div id="panel-content"></div>
+    </div>
+
+    <!-- Title screen -->
+    <div id="title">
+      <div id="petals"></div>
+      <div id="title-inner">
+        <div id="title-mascots">
+          <img id="mascot-l" alt="">
+          <div>
+            <div id="title-jp">田舎暮らし</div>
+            <div id="title-en">INAKA LIFE</div>
+          </div>
+          <img id="mascot-r" alt="">
+        </div>
+        <div id="title-sub">a tiny japanese countryside sim · cozy patch</div>
+        <div id="title-buttons">
+          <button id="btn-continue" class="hidden">♥ Continue</button>
+          <button id="btn-new">🌱 New Game</button>
+          <button id="btn-help">📖 How to Play</button>
+        </div>
+        <div id="title-keys">
+          <span><kbd>WASD</kbd> walk</span>
+          <span><kbd>E</kbd> interact</span>
+          <span><kbd>SPACE</kbd> use tool</span>
+          <span><kbd>H</kbd> help</span>
+        </div>
+        <div id="title-footer">made with 💛 &nbsp;·&nbsp; press <b>M</b> to mute</div>
+      </div>
+    </div>
+
+    <div id="fade"></div>
+    <div id="errbox" class="hidden"></div>
+  </div>
+</div>
+
+<script src="js/sprites.js"></script>
+<script src="js/sprites2.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/world.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/game.js"></script>
+<script>
+window.addEventListener("load", () => {
+  const out = [];
+  const ok = (name, cond) => out.push((cond ? "PASS " : "FAIL ") + name);
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
+  const press = (k) => { window.dispatchEvent(new KeyboardEvent("keydown", { key: k })); window.dispatchEvent(new KeyboardEvent("keyup", { key: k })); };
+  // pump E until any open (typewriter) dialog is fully dismissed
+  const pumpE = async (max = 8) => {
+    for (let i = 0; i < max && Game.S.mode === "dialog"; i++) { press("e"); await wait(90); }
+    await wait(60);
+  };
+  (async () => {
+    try {
+      await wait(150);
+      document.getElementById("btn-new").click();
+      await wait(1600);
+      await pumpE(); // dismiss intro note
+      ok("01-mode-play", Game.S.mode === "play");
+      ok("01b-intro-tut-move", Game.S.tutStep >= 0);
+      // park the animals away from the mailbox
+      for (const a of Entities.animals) { if (a.kind === "cat" || a.kind === "shiba") { a.x = 50 * 16; a.y = 24 * 16; a.state = "sit"; } }
+      Game.S.tutStep = 2; // simulate move+interact done
+      // --- mailbox / quest ---
+      Entities.player.x = 33.5 * 16; Entities.player.y = 20.7 * 16; Entities.player.dir = "up";
+      press("e"); await wait(300);
+      ok("02-mail-panel", Game.S.mode === "panel" && !!document.getElementById("q-accept"));
+      const qa = document.getElementById("q-accept"); if (qa) qa.click();
+      await wait(250);
+      ok("03-quest-set", !!Game.S.quest);
+      ok("04-mail-step", Game.S.tutStep >= 3);
+      // --- quest HUD live-updates when collecting quest items ---
+      if (Game.S.quest) {
+        const qItem = Game.S.quest.def.item;
+        const beforeProg = document.getElementById("hud-quest").textContent;
+        window.G.give(qItem, 1); await wait(80);
+        ok("05b-quest-hud-live", document.getElementById("hud-quest").textContent !== beforeProg || Game.S.quest.def.n === 1);
+      } else { out.push("SKIP 05b-quest-hud-live"); }
+      // --- farming ---
+      Entities.player.x = 50 * 16 + 8; Entities.player.y = 71 * 16 + 8; Entities.player.dir = "down";
+      press("2"); press(" "); await wait(250);
+      ok("05-hoe", Entities.player.energy <= 97);
+      ok("06-till-step", Game.S.tutStep >= 4);
+      press("4"); press(" "); await wait(250);
+      ok("07-seed-used", (Entities.player.inventory.rice_seed || 0) <= 3);
+      ok("08-plant-step", Game.S.tutStep >= 5);
+      press("3"); press(" "); await wait(250);
+      ok("09-can-used", Entities.player.canCharges === 7);
+      ok("10-water-step", Game.S.tutStep >= 6);
+      // --- shop economy: ×5 buys five ---
+      const P = Entities.player;
+      P.coins = 5000; P.inventory.rice_seed = 0;
+      const seedPrice = 60;
+      window.buy("rice_seed", seedPrice * 5, 5); await wait(50);
+      ok("11-buy-x5-qty", (P.inventory.rice_seed || 0) === 5);
+      ok("12-buy-x5-price", P.coins === 5000 - seedPrice * 5);
+      // --- tool upgrade cannot be paid twice ---
+      P.hasBigCan = false; P.coins = 2000;
+      window.buyTool("can_up", 800); await wait(50);
+      const cAfterFirst = P.coins;
+      window.buyTool("can_up", 800); await wait(50);
+      ok("13-tool-once", P.hasBigCan === true && P.coins === cAfterFirst - 0);
+      // --- journal ---
+      press("j"); await wait(200);
+      ok("14-journal-open", Game.S.mode === "panel");
+      press("Escape"); await wait(150);
+      ok("15-journal-close", Game.S.mode === "play");
+      // --- minimap toggle ---
+      press("tab"); press("tab"); await wait(100);
+      ok("16-map-toggle-ok", !document.getElementById("minimap-wrap").classList.contains("hidden"));
+      // --- dialog keyboard choices (door → nap offer path uses 2 = "Not yet") ---
+      Game.S.minutes = 10 * 60; Game.S.napUsed = true; // force plain "too early" dialog? choose choice path instead below
+      Game.S.minutes = 12 * 60; Game.S.napUsed = false;
+      Entities.player.x = 30.5 * 16; Entities.player.y = 20.5 * 16; Entities.player.dir = "up";
+      press("e"); await wait(350);
+      const napBtnCount = document.querySelectorAll("#dlg-choices .choice").length;
+      ok("17-dialog-choices", Game.S.mode === "dialog" && napBtnCount >= 2);
+      press("2"); await wait(250); // pick option 2 (Not yet)
+      ok("18-dialog-key-pick", Game.S.mode === "play");
+      // --- tanuki freeze cooldown (placed at 40px: freezes, no instant scamper) ---
+      // pause the world loop so its midday "remove tanukis" sweep can't race us
+      const savedMode = Game.S.mode;
+      Game.S.mode = "title";
+      const tk = { kind: "tanuki", x: P.x + 40, y: P.y, dir: "left", animT: 0, state: "wander", t: 2, tx: P.x + 40, ty: P.y, speed: 60, frozenT: 0 };
+      Entities.animals.push(tk);
+      for (let i = 0; i < 45; i++) { Entities.updateAnimals(0.1, { minutes: 1380, hour: 23, season: "spring", weather: "clear", night: true }); await wait(0); }
+      ok("19-tanuki-thaws", tk.frozenT <= 0 && tk.coolT > 0);
+      Entities.animals.splice(Entities.animals.indexOf(tk), 1);
+      Game.S.mode = savedMode;
+      // --- sleep ---
+      Game.S.minutes = 18 * 60 + 30;
+      Entities.player.x = 30.5 * 16; Entities.player.y = 19.5 * 16;
+      Entities.player.dir = "up";
+      press("e"); await wait(300);
+      const sleepBtn = [...document.querySelectorAll(".choice")].find(b => b.textContent.indexOf("Sleep") >= 0);
+      ok("20-sleep-choice", !!sleepBtn);
+      if (sleepBtn) sleepBtn.click();
+      await wait(2000);
+      ok("21-new-day", Game.S.day === 2);
+      ok("22-back-to-play", Game.S.mode === "play");
+      ok("23-clock-dom", !!document.getElementById("clock-tx") && /\d\d:\d\d/.test(document.getElementById("clock-tx").textContent));
+      // accept a quest letter again and make sure no runtime error surfaces
+      Game.S.mailReady = true; Game.S.mailSeenDay = 0; Game.S.quest = null; Game.S.questDone = [];
+      Entities.player.x = 33.5 * 16; Entities.player.y = 20.7 * 16; Entities.player.dir = "up";
+      press("e"); await wait(300);
+      const qa2 = document.getElementById("q-accept"); if (qa2) qa2.click();
+      await wait(250);
+      ok("24-accept-no-error", !document.getElementById("errbox").textContent.trim());
+    } catch (err) {
+      out.push("EXCEPTION " + (err && err.message));
+    }
+    const box = document.createElement("div");
+    box.id = "test-results";
+    box.textContent = "RESULTS|" + out.join("|");
+    document.body.appendChild(box);
+  })();
+});
+</script>
+</body>
+</html>
+
