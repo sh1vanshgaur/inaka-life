@@ -11,7 +11,8 @@ server: `python -m http.server`. A zero-dependency `node server.js` also works.)
 
 ### Live
 
-live: https:\\inaka-life-production.up.railway.app
+[Inaka Life Production](https://railway.app)
+
 
 Desktop + keyboard. Chrome/Edge/Firefox. Progress autosaves to `localStorage`
 (sleeps, every ~3 minutes, and on tab close).
